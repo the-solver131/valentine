@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Love Archive 💕</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Doodles Background -->
+    <div class="doodles-container">
+        <div class="doodle cat">🐱</div>
+        <div class="doodle tiger">🐯</div>
+        <div class="doodle scooter">🛵</div>
+        <div class="doodle shawarma">🌯</div>
+        <div class="doodle guitar">🎸</div>
+        <div class="doodle heart">💕</div>
+        <div class="doodle code">{ }</div>
+        <div class="doodle star">⭐</div>
+    </div>
+
+    <!-- Landing Screen -->
+    <div id="landing-screen" class="screen active">
+        <div class="landing-content">
+            <h1 class="glitch" data-text="You've Hacked Into">You've Hacked Into</h1>
+            <h2 class="typewriter">My Heart's Mainframe</h2>
+            <div class="code-block">
+                <code>
+                    if (day == "Valentine's Day") {<br>
+                    &nbsp;&nbsp;print("I love you ❤️")<br>
+                    } else {<br>
+                    &nbsp;&nbsp;print("I still love you 💕")<br>
+                    }
+                </code>
+            </div>
+            <button class="enter-btn" onclick="enterSite()">Enter Our World</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="screen">
+        <header>
+            <h1 class="site-title">Our Love Archive</h1>
+            <div class="music-player">
+                <button id="music-toggle" onclick="toggleMusic()">🎵 Play Lana</button>
+            </div>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="tab-btn active" onclick="showTab('letters')">💌 Love Letters</button>
+            <button class="tab-btn" onclick="showTab('generator')">🤓 Nerdy Lines</button>
+            <button class="tab-btn" onclick="showTab('lana')">🎶 Our Lana Playlist</button>
+        </nav>
+
+        <!-- Love Letters Section -->
+        <section id="letters-section" class="content-section active">
+            <div class="section-header">
+                <h2>Our Love Letters</h2>
+                <button class="write-btn" onclick="showLetterForm()">✍️ Write a Letter</button>
+            </div>
+
+            <!-- Letter Form -->
+            <div id="letter-form" class="letter-form hidden">
+                <h3>Write Your Heart Out</h3>
+                <input type="text" id="letter-title" placeholder="Give it a title..." />
+                <textarea id="letter-content" placeholder="Dear [Name]..."></textarea>
+                
+                <div class="photo-upload">
+                    <label for="photo-input" class="upload-label">
+                        📎 Attach a Photo
+                    </label>
+                    <input type="file" id="photo-input" accept="image/*" onchange="previewPhoto(event)" />
+                    <div id="photo-preview"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="save-btn" onclick="saveLetter()">Save Letter</button>
+                    <button class="cancel-btn" onclick="hideLetterForm()">Cancel</button>
+                </div>
+            </div>
+
+            <!-- Letters Display -->
+            <div id="letters-container" class="letters-container">
+                <!-- Letters will be dynamically added here -->
+            </div>
+        </section>
+
+        <!-- Nerdy Line Generator Section -->
+        <section id="generator-section" class="content-section">
+            <div class="generator-container">
+                <h2>Nerdy Romantic Line Generator</h2>
+                <p class="subtitle">Generate CS-themed love lines powered by AI ✨</p>
+                
+                <div class="generator-controls">
+                    <select id="topic-select" class="topic-select">
+                        <option value="computer science">Computer Science</option>
+                        <option value="programming">Programming</option>
+                        <option value="algorithms">Algorithms</option>
+                        <option value="databases">Databases</option>
+                        <option value="web development">Web Development</option>
+                        <option value="machine learning">Machine Learning</option>
+                        <option value="data structures">Data Structures</option>
+                    </select>
+                    <button class="generate-btn" onclick="generateLine()">Generate Line 💕</button>
+                </div>
+
+                <div id="generated-line" class="generated-line-display">
+                    <div class="line-content">
+                        <p id="line-text">Click generate to create a nerdy romantic line!</p>
+                    </div>
+                    <button id="copy-btn" class="copy-btn hidden" onclick="copyLine()">📋 Copy</button>
+                </div>
+
+                <div class="saved-lines">
+                    <h3>Saved Favorites ⭐</h3>
+                    <div id="saved-lines-container">
+                        <!-- Saved lines will appear here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lana Del Rey Section -->
+        <section id="lana-section" class="content-section">
+            <div class="lana-container">
+                <h2>Our Lana Del Rey Corner 🎵</h2>
+                <p class="subtitle">Songs that remind us of each other</p>
+                
+                <div class="playlist">
+                    <div class="song-card">
+                        <div class="song-info">
+                            <h3>Young and Beautiful</h3>
+                            <p class="artist">Lana Del Rey</p>
+                        </div>
+                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+young+and+beautiful" target="_blank" class="play-btn">▶️ Play</a>
+                    </div>
+                    <div class="song-card">
+                        <div class="song-info">
+                            <h3>Video Games</h3>
+                            <p class="artist">Lana Del Rey</p>
+                        </div>
+                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+video+games" target="_blank" class="play-btn">▶️ Play</a>
+                    </div>
+                    <div class="song-card">
+                        <div class="song-info">
+                            <h3>Summertime Sadness</h3>
+                            <p class="artist">Lana Del Rey</p>
+                        </div>
+                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+summertime+sadness" target="_blank" class="play-btn">▶️ Play</a>
+                    </div>
+                    <div class="song-card">
+                        <div class="song-info">
+                            <h3>Love</h3>
+                            <p class="artist">Lana Del Rey</p>
+                        </div>
+                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+love" target="_blank" class="play-btn">▶️ Play</a>
+                    </div>
+                    <div class="song-card">
+                        <div class="song-info">
+                            <h3>West Coast</h3>
+                            <p class="artist">Lana Del Rey</p>
+                        </div>
+                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+west+coast" target="_blank" class="play-btn">▶️ Play</a>
+                    </div>
+                    <div class="song-card">
+                        <div class="song-info">
+                            <h3>Born to Die</h3>
+                            <p class="artist">Lana Del Rey</p>
+                        </div>
+                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+born+to+die" target="_blank" class="play-btn">▶️ Play</a>
+                    </div>
+                </div>
+
+                <div class="quote-box">
+                    <p class="lana-quote">"Will you still love me when I'm no longer young and beautiful?"</p>
+                    <p class="quote-answer">— Always. 💕</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Audio Element (hidden) -->
+    <audio id="bg-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
