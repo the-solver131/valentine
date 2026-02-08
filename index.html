@@ -12,31 +12,70 @@
 <body>
     <!-- Animated Doodles Background -->
     <div class="doodles-container">
-        <div class="doodle cat">🐱</div>
-        <div class="doodle tiger">🐯</div>
-        <div class="doodle scooter">🛵</div>
-        <div class="doodle shawarma">🌯</div>
-        <div class="doodle guitar">🎸</div>
+        <!-- Main preferred doodles - bigger and more visible -->
+        <div class="doodle cat big">🐱</div>
+        <div class="doodle cat small">🐱</div>
+        <div class="doodle tiger big">🐯</div>
+        <div class="doodle tiger small">🐯</div>
+        <div class="doodle scooter big">🛵</div>
+        <div class="doodle scooter small">🛵</div>
+        <div class="doodle shawarma big">🌯</div>
+        <div class="doodle shawarma small">🌯</div>
+        <div class="doodle guitar big">🎸</div>
+        <div class="doodle guitar small">🎸</div>
+        
+        <!-- Additional romantic doodles -->
         <div class="doodle heart">💕</div>
-        <div class="doodle code">{ }</div>
+        <div class="doodle heart2">❤️</div>
+        <div class="doodle heart3">💖</div>
+        <div class="doodle sparkle">✨</div>
+        <div class="doodle sparkle2">✨</div>
         <div class="doodle star">⭐</div>
+        <div class="doodle star2">🌟</div>
+        <div class="doodle music">🎵</div>
+        <div class="doodle music2">🎶</div>
+        <div class="doodle flower">🌸</div>
+        <div class="doodle flower2">🌺</div>
+        <div class="doodle code">{ }</div>
+        <div class="doodle code2">&lt;/&gt;</div>
+    </div>
+
+    <!-- Password Entry Screen -->
+    <div id="password-screen" class="screen active">
+        <div class="password-content">
+            <h1 class="glitch" data-text="Our Love Archive">Our Love Archive</h1>
+            <h2 class="subtitle-text">🔐 Enter Your Private Room</h2>
+            
+            <div class="password-box">
+                <p class="instruction">Enter a password to access your shared love space. Anyone with this password can read and write letters in this room.</p>
+                
+                <input type="password" id="room-password" placeholder="Enter room password..." />
+                <button class="enter-btn" onclick="enterRoom()">Enter Room 💕</button>
+                
+                <p class="hint">Tip: Choose a password you'll share only with your special someone!</p>
+            </div>
+            
+            <div class="example-note">
+                <p>🔒 Your letters are encrypted and private. Only people with your room password can access them.</p>
+            </div>
+        </div>
     </div>
 
     <!-- Landing Screen -->
-    <div id="landing-screen" class="screen active">
+    <div id="landing-screen" class="screen">
         <div class="landing-content">
             <h1 class="glitch" data-text="You've Hacked Into">You've Hacked Into</h1>
             <h2 class="typewriter">My Heart's Mainframe</h2>
             <div class="code-block">
                 <code>
-                    if (day == "Valentine's Day") {<br>
-                    &nbsp;&nbsp;print("I love you ❤️")<br>
-                    } else {<br>
-                    &nbsp;&nbsp;print("I still love you 💕")<br>
-                    }
+                    if day == "Valentine's Day":<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;print("I love you ❤️")<br>
+                    else:<br>
+                    &nbsp;&nbsp;&nbsp;&nbsp;print("I still love you 💕")
                 </code>
             </div>
             <button class="enter-btn" onclick="enterSite()">Enter Our World</button>
+            <button class="logout-btn" onclick="logout()">🔒 Change Room</button>
         </div>
     </div>
 
@@ -44,8 +83,11 @@
     <div id="main-content" class="screen">
         <header>
             <h1 class="site-title">Our Love Archive</h1>
-            <div class="music-player">
-                <button id="music-toggle" onclick="toggleMusic()">🎵 Play Lana</button>
+            <div class="header-actions">
+                <div class="music-player">
+                    <button id="music-toggle" onclick="toggleMusic()">🎵 Play Music</button>
+                </div>
+                <button class="logout-btn-small" onclick="logout()">🔒 Logout</button>
             </div>
         </header>
 
@@ -84,7 +126,7 @@
 
             <!-- Letters Display -->
             <div id="letters-container" class="letters-container">
-                <!-- Letters will be dynamically added here -->
+                <div class="loading-message">Loading letters...</div>
             </div>
         </section>
 
@@ -92,7 +134,7 @@
         <section id="generator-section" class="content-section">
             <div class="generator-container">
                 <h2>Nerdy Romantic Line Generator</h2>
-                <p class="subtitle">Generate CS-themed love lines powered by AI ✨</p>
+                <p class="subtitle">Generate CS-themed love lines ✨</p>
                 
                 <div class="generator-controls">
                     <select id="topic-select" class="topic-select">
@@ -114,12 +156,7 @@
                     <button id="copy-btn" class="copy-btn hidden" onclick="copyLine()">📋 Copy</button>
                 </div>
 
-                <div class="saved-lines">
-                    <h3>Saved Favorites ⭐</h3>
-                    <div id="saved-lines-container">
-                        <!-- Saved lines will appear here -->
-                    </div>
-                </div>
+
             </div>
         </section>
 
@@ -130,63 +167,36 @@
                 <p class="subtitle">Songs that remind us of each other</p>
                 
                 <div class="playlist">
-                    <div class="song-card">
-                        <div class="song-info">
-                            <h3>Young and Beautiful</h3>
-                            <p class="artist">Lana Del Rey</p>
-                        </div>
-                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+young+and+beautiful" target="_blank" class="play-btn">▶️ Play</a>
-                    </div>
-                    <div class="song-card">
-                        <div class="song-info">
-                            <h3>Video Games</h3>
-                            <p class="artist">Lana Del Rey</p>
-                        </div>
-                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+video+games" target="_blank" class="play-btn">▶️ Play</a>
-                    </div>
-                    <div class="song-card">
-                        <div class="song-info">
-                            <h3>Summertime Sadness</h3>
-                            <p class="artist">Lana Del Rey</p>
-                        </div>
-                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+summertime+sadness" target="_blank" class="play-btn">▶️ Play</a>
-                    </div>
-                    <div class="song-card">
-                        <div class="song-info">
-                            <h3>Love</h3>
-                            <p class="artist">Lana Del Rey</p>
-                        </div>
-                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+love" target="_blank" class="play-btn">▶️ Play</a>
-                    </div>
-                    <div class="song-card">
-                        <div class="song-info">
-                            <h3>West Coast</h3>
-                            <p class="artist">Lana Del Rey</p>
-                        </div>
-                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+west+coast" target="_blank" class="play-btn">▶️ Play</a>
-                    </div>
-                    <div class="song-card">
-                        <div class="song-info">
-                            <h3>Born to Die</h3>
-                            <p class="artist">Lana Del Rey</p>
-                        </div>
-                        <a href="https://www.youtube.com/results?search_query=lana+del+rey+born+to+die" target="_blank" class="play-btn">▶️ Play</a>
+                    <div class="playlist-info">
+                        <p class="playlist-description">
+                            Let's create our own shared Lana Del Rey playlist together 🎵
+                        </p>
+                        <a href="https://open.spotify.com" target="_blank" class="spotify-btn">
+                            🎧 Create Our Playlist on Spotify
+                        </a>
+                        <p class="playlist-hint">
+                            Click above to go to Spotify and create a collaborative playlist we can both add songs to!
+                        </p>
                     </div>
                 </div>
 
                 <div class="quote-box">
                     <p class="lana-quote">"Will you still love me when I'm no longer young and beautiful?"</p>
-                    <p class="quote-answer">— Always. 💕</p>
                 </div>
             </div>
         </section>
     </div>
 
-    <!-- Audio Element (hidden) -->
+    <!-- Audio Element (Lana Del Rey) -->
     <audio id="bg-music" loop>
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+        <!-- Using a royalty-free relaxing piano version that won't distract -->
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/13/audio_1808fbf07a.mp3" type="audio/mpeg">
     </audio>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
     <script src="script.js"></script>
 </body>
 </html>

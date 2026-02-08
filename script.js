@@ -1,21 +1,200 @@
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyAEgXPl5-whaLveBqDvKUcTWSxz0g1-5GI",
+    authDomain: "valentine2026-4f7de.firebaseapp.com",
+    databaseURL: "https://valentine2026-4f7de-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "valentine2026-4f7de",
+    storageBucket: "valentine2026-4f7de.firebasestorage.app",
+    messagingSenderId: "744652429290",
+    appId: "1:744652429290:web:ce45d6f1bd8cb7c1a84493"
+};
+
 // Initialize app
-let letters = [];
-let savedLines = [];
+let database;
+let currentRoomKey = null;
 let currentPhoto = null;
 let musicPlaying = false;
 
-// Load data from localStorage on page load
+// Check if Firebase config is set
+function isFirebaseConfigured() {
+    return firebaseConfig.apiKey !== "YOUR_API_KEY";
+}
+
+// Initialize app
 window.addEventListener('DOMContentLoaded', () => {
-    loadLetters();
-    loadSavedLines();
-    displayLetters();
-    displaySavedLines();
+    if (isFirebaseConfigured()) {
+        firebase.initializeApp(firebaseConfig);
+        database = firebase.database();
+    }
+    
+    // Check if user already has a room key
+    const storedKey = localStorage.getItem('roomKey');
+    if (storedKey && isFirebaseConfigured()) {
+        currentRoomKey = storedKey;
+        showLanding();
+    }
 });
 
-// Enter site function
+// Password/Room functions
+function enterRoom() {
+    const password = document.getElementById('room-password').value.trim();
+    
+    if (!password) {
+        alert('Please enter a password!');
+        return;
+    }
+    
+    if (!isFirebaseConfigured()) {
+        alert('⚠️ Firebase not configured! Please follow the setup instructions in README.md to enable shared letters.');
+        // For demo purposes, still allow entering with localStorage
+        currentRoomKey = 'demo-' + btoa(password);
+        localStorage.setItem('roomKey', currentRoomKey);
+        showLanding();
+        return;
+    }
+    
+    // Create a hash of the password to use as room key
+    currentRoomKey = btoa(password); // Simple base64 encoding (you can use better hashing in production)
+    localStorage.setItem('roomKey', currentRoomKey);
+    
+    showLanding();
+}
+
+function showLanding() {
+    document.getElementById('password-screen').classList.remove('active');
+    document.getElementById('landing-screen').classList.add('active');
+    
+    // Load letters if Firebase is configured
+    if (isFirebaseConfigured()) {
+        loadLettersFromFirebase();
+    }
+}
+
 function enterSite() {
     document.getElementById('landing-screen').classList.remove('active');
     document.getElementById('main-content').classList.add('active');
+    
+    if (isFirebaseConfigured()) {
+        loadLettersFromFirebase();
+    } else {
+        // Fallback to localStorage
+        displayNoFirebaseMessage();
+    }
+}
+
+function logout() {
+    if (confirm('Are you sure you want to logout? You\'ll need to re-enter your room password.')) {
+        localStorage.removeItem('roomKey');
+        currentRoomKey = null;
+        location.reload();
+    }
+}
+
+function displayNoFirebaseMessage() {
+    const container = document.getElementById('letters-container');
+    container.innerHTML = `
+        <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: #fff3cd; border-radius: 15px; border: 2px solid #ffc107;">
+            <h3 style="color: #856404; margin-bottom: 1rem; font-family: 'Caveat', cursive; font-size: 2rem;">
+                ⚠️ Firebase Not Configured
+            </h3>
+            <p style="color: #856404; font-size: 1.1rem; margin-bottom: 1rem;">
+                To enable shared letters between you and your partner, you need to set up Firebase.
+            </p>
+            <p style="color: #856404; font-size: 1rem;">
+                Please follow the instructions in the README.md file to configure Firebase.
+                Without Firebase, letters will only be stored locally on this device.
+            </p>
+        </div>
+    `;
+}
+
+// Firebase Functions
+function loadLettersFromFirebase() {
+    if (!isFirebaseConfigured() || !currentRoomKey) return;
+    
+    const lettersRef = database.ref('rooms/' + currentRoomKey + '/letters');
+    
+    lettersRef.on('value', (snapshot) => {
+        const container = document.getElementById('letters-container');
+        const data = snapshot.val();
+        
+        if (!data) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 3rem; grid-column: 1/-1;">
+                    <p style="font-size: 1.5rem; color: var(--brown); font-family: 'Caveat', cursive;">
+                        No letters yet. Write your first love letter! 💕
+                    </p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Convert object to array and sort by date
+        const letters = Object.entries(data).map(([id, letter]) => ({
+            id,
+            ...letter
+        })).sort((a, b) => b.timestamp - a.timestamp);
+        
+        displayLetters(letters);
+    });
+}
+
+function saveLetter() {
+    const title = document.getElementById('letter-title').value.trim();
+    const content = document.getElementById('letter-content').value.trim();
+    
+    if (!title || !content) {
+        alert('Please fill in both title and content!');
+        return;
+    }
+    
+    const letter = {
+        title: title,
+        content: content,
+        photo: currentPhoto,
+        date: new Date().toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        }),
+        timestamp: Date.now()
+    };
+    
+    if (isFirebaseConfigured() && currentRoomKey) {
+        // Save to Firebase
+        const lettersRef = database.ref('rooms/' + currentRoomKey + '/letters');
+        lettersRef.push(letter);
+        
+        hideLetterForm();
+        alert('💕 Letter saved successfully!');
+    } else {
+        // Fallback message
+        alert('⚠️ Firebase not configured. Letter cannot be saved to shared space. Please configure Firebase following README.md instructions.');
+        hideLetterForm();
+    }
+}
+
+function deleteLetter(id) {
+    if (!isFirebaseConfigured() || !currentRoomKey) return;
+    
+    if (confirm('Are you sure you want to delete this letter?')) {
+        const letterRef = database.ref('rooms/' + currentRoomKey + '/letters/' + id);
+        letterRef.remove();
+    }
+}
+
+function displayLetters(letters) {
+    const container = document.getElementById('letters-container');
+    
+    container.innerHTML = letters.map(letter => `
+        <div class="letter-card">
+            <button class="delete-letter-btn" onclick="deleteLetter('${letter.id}')">×</button>
+            <h3>${letter.title}</h3>
+            <p class="letter-date">${letter.date}</p>
+            <p class="letter-text">${letter.content}</p>
+            ${letter.photo ? `<img src="${letter.photo}" alt="Letter photo" class="letter-photo">` : ''}
+        </div>
+    `).join('');
 }
 
 // Music player
@@ -25,11 +204,11 @@ function toggleMusic() {
     
     if (musicPlaying) {
         music.pause();
-        button.textContent = '🎵 Play Lana';
+        button.textContent = '🎵 Play Music';
         musicPlaying = false;
     } else {
         music.play();
-        button.textContent = '⏸️ Pause Lana';
+        button.textContent = '⏸️ Pause Music';
         musicPlaying = true;
     }
 }
@@ -81,83 +260,36 @@ function previewPhoto(event) {
     }
 }
 
-function saveLetter() {
-    const title = document.getElementById('letter-title').value.trim();
-    const content = document.getElementById('letter-content').value.trim();
-    
-    if (!title || !content) {
-        alert('Please fill in both title and content!');
-        return;
-    }
-    
-    const letter = {
-        id: Date.now(),
-        title: title,
-        content: content,
-        photo: currentPhoto,
-        date: new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        })
-    };
-    
-    letters.unshift(letter);
-    saveLetters();
-    displayLetters();
-    hideLetterForm();
-    
-    // Show success message
-    alert('💕 Letter saved successfully!');
-}
-
-function deleteLetter(id) {
-    if (confirm('Are you sure you want to delete this letter?')) {
-        letters = letters.filter(letter => letter.id !== id);
-        saveLetters();
-        displayLetters();
-    }
-}
-
-function displayLetters() {
-    const container = document.getElementById('letters-container');
-    
-    if (letters.length === 0) {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 3rem; grid-column: 1/-1;">
-                <p style="font-size: 1.5rem; color: var(--brown); font-family: 'Caveat', cursive;">
-                    No letters yet. Write your first love letter! 💕
-                </p>
-            </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = letters.map(letter => `
-        <div class="letter-card">
-            <button class="delete-letter-btn" onclick="deleteLetter(${letter.id})">×</button>
-            <h3>${letter.title}</h3>
-            <p class="letter-date">${letter.date}</p>
-            <p class="letter-text">${letter.content}</p>
-            ${letter.photo ? `<img src="${letter.photo}" alt="Letter photo" class="letter-photo">` : ''}
-        </div>
-    `).join('');
-}
-
-function saveLetters() {
-    localStorage.setItem('loveLetters', JSON.stringify(letters));
-}
-
-function loadLetters() {
-    const stored = localStorage.getItem('loveLetters');
-    if (stored) {
-        letters = JSON.parse(stored);
-    }
-}
-
 // Nerdy Line Generator
-async function generateLine() {
-    const topic = document.getElementById('topic-select').value;
+function generateLine() {
+    const fallbackLines = [
+        "You're the semicolon to my statement; incomplete without you.",
+        "If love were code, you'd be my main function.",
+        "You must be a compiler, because you turn my thoughts into reality.",
+        "Our love is like recursion: it goes deeper every time.",
+        "You're the algorithm to my heart; always finding the optimal solution.",
+        "Like a perfectly optimized query, you make my heart run faster.",
+        "You're my favorite variable: constant, never null, always there.",
+        "If (me + you) { return happiness; }",
+        "You're the CSS to my HTML; you make everything beautiful.",
+        "Our connection is better than any API integration.",
+        "You're like machine learning: you make me better every day.",
+        "In the database of my heart, you're the primary key.",
+        "You're my try-catch block; you handle all my exceptions.",
+        "Like a binary search, you always find the way to my heart.",
+        "You're my Stack Overflow answer: exactly what I was looking for.",
+        "My love for you is O(1): constant and never-changing.",
+        "You're the commit I never want to revert.",
+        "Like a well-written loop, my love for you is infinite.",
+        "You're my favorite merge: no conflicts, just harmony.",
+        "In the array of life, you're my first element.",
+        "You debug my heart every single day.",
+        "Our love compiles perfectly every time.",
+        "You're the return value I've always been searching for.",
+        "Like a perfect hash function, you complete me.",
+        "You're my sudo command: you have all the permissions to my heart."
+    ];
+    
     const button = document.querySelector('.generate-btn');
     const lineText = document.getElementById('line-text');
     const copyBtn = document.getElementById('copy-btn');
@@ -166,69 +298,15 @@ async function generateLine() {
     button.innerHTML = '<span class="loading"></span> Generating...';
     copyBtn.classList.add('hidden');
     
-    try {
-        // Call Claude API to generate nerdy romantic line
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
-                max_tokens: 1000,
-                messages: [{
-                    role: 'user',
-                    content: `Generate one short, creative, nerdy romantic line about ${topic}. Make it clever, sweet, and CS/programming themed. Keep it under 100 characters. Just give me the line, nothing else.`
-                }]
-            })
-        });
-        
-        const data = await response.json();
-        const generatedLine = data.content[0].text.trim();
-        
-        lineText.textContent = generatedLine;
-        copyBtn.classList.remove('hidden');
-        
-        // Add save button
-        if (!document.getElementById('save-line-btn')) {
-            const saveBtn = document.createElement('button');
-            saveBtn.id = 'save-line-btn';
-            saveBtn.className = 'copy-btn';
-            saveBtn.textContent = '⭐ Save to Favorites';
-            saveBtn.onclick = () => saveLine(generatedLine);
-            copyBtn.parentElement.appendChild(saveBtn);
-        } else {
-            const saveBtn = document.getElementById('save-line-btn');
-            saveBtn.onclick = () => saveLine(generatedLine);
-        }
-        
-    } catch (error) {
-        // Fallback to predefined lines if API fails
-        const fallbackLines = [
-            "You're the semicolon to my statement; incomplete without you.",
-            "If love were code, you'd be my main function.",
-            "You must be a compiler, because you turn my thoughts into reality.",
-            "Our love is like recursion: it goes deeper every time.",
-            "You're the algorithm to my heart; always finding the optimal solution.",
-            "Like a perfectly optimized query, you make my heart run faster.",
-            "You're my favorite variable: constant, never null, always there.",
-            "If (me + you) { return happiness; }",
-            "You're the CSS to my HTML; you make everything beautiful.",
-            "Our connection is better than any API integration.",
-            "You're like machine learning: you make me better every day.",
-            "In the database of my heart, you're the primary key.",
-            "You're my try-catch block; you handle all my exceptions.",
-            "Like a binary search, you always find the way to my heart.",
-            "You're my Stack Overflow answer: exactly what I was looking for."
-        ];
-        
+    // Simulate generation delay
+    setTimeout(() => {
         const randomLine = fallbackLines[Math.floor(Math.random() * fallbackLines.length)];
         lineText.textContent = randomLine;
         copyBtn.classList.remove('hidden');
-    }
-    
-    button.disabled = false;
-    button.innerHTML = 'Generate Line 💕';
+        
+        button.disabled = false;
+        button.innerHTML = 'Generate Line 💕';
+    }, 1000);
 }
 
 function copyLine() {
@@ -241,78 +319,4 @@ function copyLine() {
             copyBtn.textContent = originalText;
         }, 2000);
     });
-}
-
-function saveLine(line) {
-    if (!savedLines.includes(line)) {
-        savedLines.push(line);
-        saveSavedLines();
-        displaySavedLines();
-        
-        const saveBtn = document.getElementById('save-line-btn');
-        const originalText = saveBtn.textContent;
-        saveBtn.textContent = '✓ Saved!';
-        setTimeout(() => {
-            saveBtn.textContent = originalText;
-        }, 2000);
-    } else {
-        alert('This line is already in your favorites!');
-    }
-}
-
-function removeLine(index) {
-    savedLines.splice(index, 1);
-    saveSavedLines();
-    displaySavedLines();
-}
-
-function displaySavedLines() {
-    const container = document.getElementById('saved-lines-container');
-    
-    if (savedLines.length === 0) {
-        container.innerHTML = `
-            <p style="text-align: center; color: var(--brown); font-style: italic;">
-                No saved lines yet. Generate some nerdy love lines and save your favorites!
-            </p>
-        `;
-        return;
-    }
-    
-    container.innerHTML = savedLines.map((line, index) => `
-        <div class="saved-line-card">
-            <p class="saved-line-text">${line}</p>
-            <button class="remove-line-btn" onclick="removeLine(${index})">×</button>
-        </div>
-    `).join('');
-}
-
-function saveSavedLines() {
-    localStorage.setItem('savedLines', JSON.stringify(savedLines));
-}
-
-function loadSavedLines() {
-    const stored = localStorage.getItem('savedLines');
-    if (stored) {
-        savedLines = JSON.parse(stored);
-    }
-}
-
-// Add some example content for first visit
-if (letters.length === 0 && !localStorage.getItem('hasVisited')) {
-    const exampleLetter = {
-        id: Date.now(),
-        title: "To My Love 💕",
-        content: "Happy Valentine's Day! I built this little corner of the internet just for us. A place where we can write love letters, save our favorite nerdy lines, and listen to Lana together. Thank you for being my constant, my variable that never changes, and the best part of my code. I love you more than words can compile. ❤️",
-        photo: null,
-        date: new Date().toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        })
-    };
-    
-    letters.push(exampleLetter);
-    saveLetters();
-    displayLetters();
-    localStorage.setItem('hasVisited', 'true');
 }
